@@ -2,6 +2,12 @@
 
 
 #include "InteractiveArchController.h"
+#include "GameFramework/Actor.h"
+#include "IsometricCameraPawn.h"
+#include "OrthographicCameraPawn.h"
+#include "PerspectiveCameraPawn.h"
+#include "Kismet/GameplayStatics.h"
+
 
 void AInteractiveArchController::BeginPlay()
 {
@@ -22,6 +28,36 @@ void AInteractiveArchController::BeginPlay()
             GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Emerald, TEXT("Added"));
         }
     }
+   IsometricPawn = Cast<APawn>(UGameplayStatics::GetActorOfClass(GetWorld(), AIsometricCameraPawn::StaticClass()));
+   if (!IsometricPawn)
+   {
+       FActorSpawnParameters SpawnParams;
+       IsometricPawn = GetWorld()->SpawnActor<AIsometricCameraPawn>(AIsometricCameraPawn::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+   }
+   
+   PerspectivePawn = Cast<APawn>(UGameplayStatics::GetActorOfClass(GetWorld(), APerspectiveCameraPawn::StaticClass()));
+   if (!PerspectivePawn)
+   {
+      /* PerspectivePawn = SpawnCameraPawn<APerspectiveCameraPawn>();*/
+       FActorSpawnParameters SpawnParams;
+       PerspectivePawn =  GetWorld()->SpawnActor<APerspectiveCameraPawn>(APerspectiveCameraPawn::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+   }
+   OrthographicPawn = Cast<APawn>(UGameplayStatics::GetActorOfClass(GetWorld(), AOrthographicCameraPawn::StaticClass()));
+   if (!OrthographicPawn)
+   {
+       FActorSpawnParameters SpawnParams;
+       PerspectivePawn = GetWorld()->SpawnActor<AOrthographicCameraPawn>(AOrthographicCameraPawn::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+   }
+   if (IsometricPawn) {
+       //GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, TEXT("I selected"));
+       //IsometricPawn->SetActorLocation(FVector(0.0f, 0.0f, 200.0f));
+       Possess(IsometricPawn);
+       CurrentPawn = IsometricPawn;
+   }
+   else {
+       GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, TEXT("Isometric not Spawned"));
+
+   }
 }
 
 void AInteractiveArchController::SetupInputComponent()
@@ -30,6 +66,9 @@ void AInteractiveArchController::SetupInputComponent()
 
     InputComponent->BindAction("LeftMouseClick", IE_Pressed, this, &AInteractiveArchController::OnLeftMouseClick);
     InputComponent->BindAction("TabkeyClick", IE_Pressed, this, &AInteractiveArchController::ToggleUI);
+    InputComponent->BindAction("SwitchToIsometric", IE_Pressed, this, &AInteractiveArchController::SwitchToIsometricView);
+    InputComponent->BindAction("SwitchToOrthographic", IE_Pressed, this, &AInteractiveArchController::SwitchToOrthographicView);
+    InputComponent->BindAction("SwitchToPerspective", IE_Pressed, this, &AInteractiveArchController::SwitchToPerspectiveView);
 }
 void AInteractiveArchController::OnLeftMouseClick()
 {
@@ -40,17 +79,23 @@ void AInteractiveArchController::OnLeftMouseClick()
         DeprojectMousePositionToWorld(WorldLocation, WorldDirection);
         GetWorld()->LineTraceSingleByChannel(HitResult, WorldLocation, WorldLocation + WorldDirection * 10000.f, ECollisionChannel::ECC_Visibility);
         HitLocation = HitResult.ImpactPoint;
+        if (IsometricPawn) {
+            MoveCameraToLocation(HitLocation);
+        }
         AArchMeshActor* HitMeshActor = Cast<AArchMeshActor>(HitResult.GetActor());
         if (HitMeshActor) {
             // If there is a MeshActor, select it as the current MeshActor
             MeshActor = HitMeshActor;
             HitLocation = HitMeshActor->GetActorLocation();
+            if (!bSlateVisible)
+                ToggleUI();
             SelectionBoxInstance->MeshSelectionScrollBoxWidget->SetVisibility(ESlateVisibility::Visible);
             SelectionBoxInstance->MaterialSelectionScrollBoxWidget->SetVisibility(ESlateVisibility::Visible);
             SelectionBoxInstance->TextureSelectionScrollBoxWidget->SetVisibility(ESlateVisibility::Visible);
         }
         else {
-
+            if (!bSlateVisible)
+                ToggleUI();
             SelectionBoxInstance->MeshSelectionScrollBoxWidget->SetVisibility(ESlateVisibility::Visible);
             SelectionBoxInstance->MaterialSelectionScrollBoxWidget->SetVisibility(ESlateVisibility::Hidden);
             SelectionBoxInstance->TextureSelectionScrollBoxWidget->SetVisibility(ESlateVisibility::Hidden);
@@ -97,5 +142,37 @@ void AInteractiveArchController::ToggleUI() {
     else {
         SelectionBoxInstance->SetVisibility(ESlateVisibility::Visible);
         bSlateVisible = true;
+    }
+}
+
+void AInteractiveArchController::SwitchToIsometricView()
+{
+    if (IsometricPawn)
+        Possess(IsometricPawn);
+}
+
+void AInteractiveArchController::SwitchToOrthographicView()
+{
+    if (OrthographicPawn) {
+        
+        GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, TEXT("switch to orthograpic view"));
+        Possess(OrthographicPawn);
+
+    }
+}
+
+void AInteractiveArchController::SwitchToPerspectiveView()
+{
+    if (PerspectivePawn) {
+        GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, TEXT("switch to perspective view"));
+        Possess(PerspectivePawn);
+    }
+}
+
+void AInteractiveArchController::MoveCameraToLocation(FVector Location)
+{
+    if (CurrentPawn && Cast<AIsometricCameraPawn>(CurrentPawn))
+    {
+        Cast<AIsometricCameraPawn>(CurrentPawn)->MoveCameraToLocation(Location);
     }
 }

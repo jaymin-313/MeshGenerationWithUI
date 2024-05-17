@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+
+#include "Camera/CameraComponent.h"
 #include "SelectionBox.h"
 #include "ArchMeshActor.h"
 #include "InteractiveArchController.generated.h"
@@ -24,7 +26,7 @@ protected:
 	void ApplyTexture(const FTextureData& TextureData);
 	void ToggleUI();
 public:
-
+	//AInteractiveArchController();
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
 	TSubclassOf<USelectionBox> SelectionBoxClass;
 
@@ -34,4 +36,16 @@ public:
 	FVector HitLocation;
 	bool bSlateVisible = false;
 	AArchMeshActor* MeshActor;
+private:
+	void SwitchToIsometricView();
+	void SwitchToOrthographicView();
+	void SwitchToPerspectiveView();
+	APawn* IsometricPawn;
+	APawn* OrthographicPawn;
+	APawn* PerspectivePawn;
+	APawn* CurrentPawn;
+
+	void MoveCameraToLocation(FVector Location);
+
+
 };

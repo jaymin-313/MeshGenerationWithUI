@@ -30,6 +30,9 @@ public:
 	void RotateCameraCounterClockwise();
 
 	void RotateCameraClockwise();
+	void MoveCameraToLocation(FVector InLocation);
+	void Zoom(float AxisValue);
+
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite,Category = "Camera")
 	UCameraComponent* CameraComponent;
@@ -39,6 +42,6 @@ public:
 
 	float RotationAngleIncrement = 45.0f;
 	float TargetYaw = 0.0f;
-	float RotationSpeed = 45.0f;
+	float RotationSpeed = 3.0f;
 	float TotalRotation = 0.0f;
 };
