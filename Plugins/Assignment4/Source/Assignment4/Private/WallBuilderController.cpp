@@ -16,24 +16,24 @@
 #include "Engine/Engine.h"
 
 
-static void KeyMap(UInputMappingContext* InputMappingContext, UInputAction* InputAction, FKey Key,
-    bool bNegate = false,
-    bool bSwizzle = false, EInputAxisSwizzle SwizzleOrder = EInputAxisSwizzle::YXZ)
-{
-    FEnhancedActionKeyMapping& Mapping = InputMappingContext->MapKey(InputAction, Key);
-    UObject* Outer = InputMappingContext->GetOuter();
-
-    if (bNegate) {
-        UInputModifierNegate* Negate = NewObject<UInputModifierNegate>(Outer);
-        Mapping.Modifiers.Add(Negate);
-    }
-
-    if (bSwizzle) {
-        UInputModifierSwizzleAxis* Swizzle = NewObject<UInputModifierSwizzleAxis>(Outer);
-        Swizzle->Order = SwizzleOrder;
-        Mapping.Modifiers.Add(Swizzle);
-    }
-}
+//void AWallBuilderController::KeyMap(UInputMappingContext* InputMappingContext, UInputAction* InputAction, FKey Key,
+//    bool bNegate = false,
+//    bool bSwizzle = false, EInputAxisSwizzle SwizzleOrder = EInputAxisSwizzle::YXZ)
+//{
+//    FEnhancedActionKeyMapping& Mapping = InputMappingContext->MapKey(InputAction, Key);
+//    UObject* Outer = InputMappingContext->GetOuter();
+//
+//    if (bNegate) {
+//        UInputModifierNegate* Negate = NewObject<UInputModifierNegate>(Outer);
+//        Mapping.Modifiers.Add(Negate);
+//    }
+//
+//    if (bSwizzle) {
+//        UInputModifierSwizzleAxis* Swizzle = NewObject<UInputModifierSwizzleAxis>(Outer);
+//        Swizzle->Order = SwizzleOrder;
+//        Mapping.Modifiers.Add(Swizzle);
+//    }
+//}
 AWallBuilderController::AWallBuilderController()
 {
     bShowMouseCursor = true;
@@ -80,23 +80,32 @@ void AWallBuilderController::SetupInputComponent()
 
     LeftClickAction = NewObject<UInputAction>(this);
     LeftClickAction->ValueType = EInputActionValueType::Boolean;
-    KeyMap(SplineMappingContext, LeftClickAction, EKeys::LeftMouseButton);
+    //KeyMap(SplineMappingContext, LeftClickAction, EKeys::LeftMouseButton);
+    SplineMappingContext->MapKey(LeftClickAction, EKeys::LeftMouseButton);
 
     RightClickAction = NewObject<UInputAction>(this);
     RightClickAction->ValueType = EInputActionValueType::Boolean;
-    KeyMap(SplineMappingContext, RightClickAction, EKeys::RightMouseButton);
+    //KeyMap(SplineMappingContext, RightClickAction, EKeys::RightMouseButton);
+    SplineMappingContext->MapKey(RightClickAction, EKeys::RightMouseButton);
+
 
     UndoAction = NewObject<UInputAction>(this);
     UndoAction->ValueType = EInputActionValueType::Boolean;
-    KeyMap(SplineMappingContext, UndoAction, EKeys::Z);
+    //KeyMap(SplineMappingContext, UndoAction, EKeys::Z);
+    SplineMappingContext->MapKey(UndoAction, EKeys::Z);
+
 
     DeleteAction = NewObject<UInputAction>(this);
     DeleteAction->ValueType = EInputActionValueType::Boolean;
-    KeyMap(SplineMappingContext, DeleteAction, EKeys::Delete);
+    //KeyMap(SplineMappingContext, DeleteAction, EKeys::Delete);
+    SplineMappingContext->MapKey(DeleteAction, EKeys::Delete);
+
 
     ClearAction = NewObject<UInputAction>(this);
     ClearAction->ValueType = EInputActionValueType::Boolean;
-    KeyMap(SplineMappingContext, ClearAction, EKeys::C);
+    //KeyMap(SplineMappingContext, ClearAction, EKeys::C);
+    SplineMappingContext->MapKey(ClearAction, EKeys::C);
+
 
     UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(InputComponent);
 

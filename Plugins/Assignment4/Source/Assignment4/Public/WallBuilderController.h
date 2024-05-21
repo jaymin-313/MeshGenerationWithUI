@@ -19,6 +19,8 @@ class ASSIGNMENT4_API AWallBuilderController : public APlayerController
 	GENERATED_BODY()
 public:
 
+    //void KeyMap(UInputMappingContext* InputMappingContext, UInputAction* InputAction, FKey Key, bool bNegate, bool bSwizzle, EInputAxisSwizzle SwizzleOrder);
+
     AWallBuilderController();
     // Enable the cursor and set input mode to game and UI
     UFUNCTION(BlueprintCallable)

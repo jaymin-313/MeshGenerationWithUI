@@ -8,7 +8,7 @@ public class UE_AssignmentUI : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore","EnhancedInput", });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore","EnhancedInput", "HeadMountedDisplay", "NavigationSystem", "AIModule", "Niagara","Assignment_1_2" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 

@@ -20,6 +20,7 @@ class ASSIGNMENT4_API ATopDownPawn : public APawn
 	GENERATED_BODY()
 
 public:
+	void MapKey(UInputMappingContext* InputMappingContext, UInputAction* InputAction, FKey Key, bool bNegate, bool bSwizzle, EInputAxisSwizzle SwizzleOrder);
 	// Sets default values for this pawn's properties
 	ATopDownPawn();
 

@@ -4,7 +4,7 @@
 #include "TopDownPawn.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-static void MapKey(UInputMappingContext* InputMappingContext, UInputAction* InputAction, FKey Key,
+void ATopDownPawn::MapKey(UInputMappingContext* InputMappingContext, UInputAction* InputAction, FKey Key,
 	bool bNegate = false,
 	bool bSwizzle = false, EInputAxisSwizzle SwizzleOrder = EInputAxisSwizzle::YXZ)
 {
