@@ -1,9 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "OrthographicCameraPawn.h"
-
-
+#include "TopDownPawn.h"
+#include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
 static void MapKey(UInputMappingContext* InputMappingContext, UInputAction* InputAction, FKey Key,
 	bool bNegate = false,
 	bool bSwizzle = false, EInputAxisSwizzle SwizzleOrder = EInputAxisSwizzle::YXZ)
@@ -23,47 +23,39 @@ static void MapKey(UInputMappingContext* InputMappingContext, UInputAction* Inpu
 		Mapping.Modifiers.Add(Swizzle);
 	}
 }
-// Sets default values
-AOrthographicCameraPawn::AOrthographicCameraPawn()
+ATopDownPawn::ATopDownPawn()
 {
- 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+
 	PrimaryActorTick.bCanEverTick = true;
 	USceneComponent* Scene = CreateDefaultSubobject<USceneComponent>(TEXT("Scene"));
 	SetRootComponent(Scene);
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("Spring Arm"));
-	SpringArm->SetRelativeRotation(FRotator(-90.0f, 0.0f, 0.0f));
-	SpringArm->TargetArmLength = 1000.0f;
-	//SpringArm->TargetOffset = FVector(-520, 0, 540);
+	SpringArm->TargetArmLength = -211.599960;
+	SpringArm->TargetOffset = FVector(-520, 0, 540);
 	SpringArm->SetupAttachment(Scene);
 	SpringArm->bDoCollisionTest = false;
 
-	//float Angle = FMath::RadiansToDegrees(atan(SpringArm->TargetOffset.Z / SpringArm->TargetArmLength));
+	float Angle = FMath::RadiansToDegrees(atan(SpringArm->TargetOffset.Z / SpringArm->TargetArmLength));
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
-	//Camera->SetRelativeRotation(FRotator(-90.0f, 0, 0));
-	Camera->SetupAttachment(SpringArm,USpringArmComponent::SocketName);
-	Camera->SetProjectionMode(ECameraProjectionMode::Orthographic);
+	Camera->SetRelativeRotation(FRotator(-Angle, 0, 0));
+	Camera->SetupAttachment(SpringArm);
 
 	Movement = CreateDefaultSubobject<UFloatingPawnMovement>(TEXT("Movement"));
-	MoveScale = 10.0f;
+	MoveScale = 1.0f;
 	ZoomScale = 100.0f;
 }
 
-// Called when the game starts or when spawned
-void AOrthographicCameraPawn::BeginPlay()
+void ATopDownPawn::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
-// Called every frame
-void AOrthographicCameraPawn::Tick(float DeltaTime)
+void ATopDownPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
 }
-
-// Called to bind functionality to input
-void AOrthographicCameraPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+void ATopDownPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 	PawnMappingContext = NewObject<UInputMappingContext>(this);
@@ -84,28 +76,72 @@ void AOrthographicCameraPawn::SetupPlayerInputComponent(UInputComponent* PlayerI
 	UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(PlayerInputComponent);
 	APlayerController* FPC = Cast<APlayerController>(Controller);
 	check(EIC);
-	EIC->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AOrthographicCameraPawn::Move);
-	EIC->BindAction(ZoomAction, ETriggerEvent::Triggered, this, &AOrthographicCameraPawn::Zoom);
+	EIC->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ATopDownPawn::Move);
+	EIC->BindAction(ZoomAction, ETriggerEvent::Triggered, this, &ATopDownPawn::Zoom);
 	ULocalPlayer* LocalPlayer = FPC->GetLocalPlayer();
 	check(LocalPlayer);
 	UEnhancedInputLocalPlayerSubsystem* Subsystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
 	check(Subsystem);
-	Subsystem->ClearAllMappings();
+	//Subsystem->ClearAllMappings();
 	Subsystem->AddMappingContext(PawnMappingContext, 0);
 }
 
-void AOrthographicCameraPawn::Move(const FInputActionValue& ActionValue)
+void ATopDownPawn::Move(const FInputActionValue& ActionValue)
 {
-	FVector MovementValue = ActionValue.Get<FVector>();
-	FVector DeltaLocation = FVector(MovementValue.X, MovementValue.Y, 0.0f) * MoveScale;
-	AddActorLocalOffset(DeltaLocation, true);
+	FVector Input;
+	Input.X = ActionValue.Get<FInputActionValue::Axis2D>().X;
+	Input.Y = ActionValue.Get<FInputActionValue::Axis2D>().Y;
+	FVector Input2 = GetActorRotation().RotateVector(Input);
+	Input2.Z = 0;
+
+	AddMovementInput(Input2, MoveScale);
 }
 
-void AOrthographicCameraPawn::Zoom(const FInputActionValue& ActionValue)
+void ATopDownPawn::Zoom(const FInputActionValue& ActionValue)
 {
-	//GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, TEXT("zoom inout"));
-	float ZoomValue = ActionValue.Get<float>();
-	float NewOrthoWidth = Camera->OrthoWidth - (ZoomValue * ZoomScale);
-	Camera->OrthoWidth = FMath::Clamp(NewOrthoWidth, 512.0f, 4096.0f); // Adjust these values to your desired min/max zoom levels
+	float Value = ActionValue.Get<float>();
+
+	float TargetArmLength = SpringArm->TargetArmLength;
+	float TargetOffsetZ = SpringArm->TargetOffset.Z;
+
+	if (TargetArmLength >= -460) {
+		SpringArm->TargetOffset.Z -= Value * 20;
+	}
+	if (TargetOffsetZ <= 1000) {
+		SpringArm->TargetArmLength -= Value * 9.2;
+	}
+
+	SpringArm->TargetArmLength = FMath::Clamp(SpringArm->TargetArmLength, -500, -0);
+	SpringArm->TargetOffset.Z = FMath::Clamp(SpringArm->TargetOffset.Z, 0, 5000);
+
+	FString FloatAsString = FString::SanitizeFloat(SpringArm->TargetArmLength);
+	FString DebugMessage = FString::Printf(TEXT("MyFloatValue: %s"), *FloatAsString);
+
+	FloatAsString = FString::SanitizeFloat(SpringArm->TargetOffset.Z);
+	DebugMessage = FString::Printf(TEXT("MyFloatValue: %s"), *FloatAsString);
+
+	float Angle;
+	if (SpringArm->TargetArmLength == 0) {
+		Angle = -90;
+	}
+	else {
+		Angle = FMath::RadiansToDegrees(atan(SpringArm->TargetOffset.Z / SpringArm->TargetArmLength));
+		Angle = FMath::Clamp(Angle, -90, 0);
+	}
+
+	if (Angle < -90) {
+		Angle = -90;
+	}
+	if (Angle > 0) {
+		Angle = 0;
+	}
+
+	FloatAsString = FString::SanitizeFloat(Angle);
+	DebugMessage = FString::Printf(TEXT("MyFloatValue: %s"), *FloatAsString);
+
+	Camera->SetRelativeRotation(FRotator(Angle, 0, 0));
+
 }
+
+
 

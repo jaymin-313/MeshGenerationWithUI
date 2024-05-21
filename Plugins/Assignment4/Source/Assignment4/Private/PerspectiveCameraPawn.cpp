@@ -80,8 +80,7 @@ void APerspectiveCameraPawn::SetupPlayerInputComponent(UInputComponent* PlayerIn
 
 	RotateAction = NewObject<UInputAction>(this);
 	RotateAction->ValueType = EInputActionValueType::Axis2D;
-	KeyMap(PawnMappingContext, RotateAction, EKeys::MouseY);
-	KeyMap(PawnMappingContext, RotateAction, EKeys::MouseX, false, true);
+	KeyMap(PawnMappingContext, RotateAction, EKeys::Mouse2D);
 
 	UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(PlayerInputComponent);
 
@@ -104,23 +103,29 @@ void APerspectiveCameraPawn::SetupPlayerInputComponent(UInputComponent* PlayerIn
 void APerspectiveCameraPawn::Move(const FInputActionValue& ActionValue)
 {
 
-	FVector Input = ActionValue.Get<FInputActionValue::Axis3D>();
+	FVector MovementInput = ActionValue.Get<FVector>();
 
-	FVector Input2 = GetActorRotation().RotateVector(Input);
+	FRotator Rotation = Controller->GetControlRotation();
 
+	FRotator YawRotation(0, Rotation.Yaw, 0);
 
-	AddMovementInput(Input2, MoveScale);
+	FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+
+	FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+	FVector UpDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Z);
+
+	AddMovementInput(ForwardDirection, MovementInput.X);
+
+	AddMovementInput(RightDirection, MovementInput.Y);
+
+	AddMovementInput(UpDirection, MovementInput.Z);
 
 }
 
 void APerspectiveCameraPawn::Rotate(const FInputActionValue& ActionValue)
 {
-	FRotator Input(ActionValue[0], ActionValue[1], ActionValue[2]);
-	Input *= GetWorld()->GetDeltaSeconds() * RotateScale;
-
-	Input += GetActorRotation();
-	Input.Pitch = FMath::ClampAngle(Input.Pitch, -89.9f, 89.9f);
-	Input.Roll = 0;
-
-	SetActorRotation(Input);
+	FVector2D Rotattion = ActionValue.Get<FVector2D>();
+	AddControllerYawInput(Rotattion.X);
+	AddControllerPitchInput(-Rotattion.Y);
 }
