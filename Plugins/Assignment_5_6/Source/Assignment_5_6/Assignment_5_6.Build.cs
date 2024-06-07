@@ -39,6 +39,7 @@ public class Assignment_5_6 : ModuleRules
 				"Slate",
 				"SlateCore",
 				"ProceduralMeshComponent",
+				"UMG",
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
