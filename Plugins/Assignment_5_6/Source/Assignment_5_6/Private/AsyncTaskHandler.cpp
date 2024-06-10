@@ -37,7 +37,7 @@ void FAsyncTaskHandler::DoWork()
 							FColor::Cyan,
 							FString::Printf(TEXT("Box Generate")));*/
 						FVector BoundingExtent = (MeshGenerator->Scale) * 50;
-						FVector Origin = MeshGenerator->Location + FVector(0, 0, BoundingExtent.Z/2);
+						FVector Origin = MeshGenerator->Location + FVector(0, 0, BoundingExtent.Z);
 						FBox BoundingBox(Origin - BoundingExtent, Origin + BoundingExtent);
 
 						Position = FMath::RandPointInBox(BoundingBox);
