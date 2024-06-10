@@ -26,6 +26,18 @@ void AMeshGenerator::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
+void AMeshGenerator::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (AsyncScatterTask && !AsyncScatterTask->IsDone())
+	{
+		//AsyncScatterTask->GetTask().Cancel();
+		AsyncScatterTask->EnsureCompletion();
+		delete AsyncScatterTask;
+		AsyncScatterTask = nullptr;
+	}
+
+	Super::EndPlay(EndPlayReason);
+}
 void AMeshGenerator::ScatterObjects(int N, FVector Scale_, FVector Location_, FString Type_)
 {
 	NumberOfInstances = N;
@@ -43,6 +55,7 @@ void AMeshGenerator::ScatterObjects(int N, FVector Scale_, FVector Location_, FS
 
 	if (AsyncScatterTask && !AsyncScatterTask->IsDone())
 	{
+		//AsyncScatterTask->GetTask().Cancel();
 		AsyncScatterTask->EnsureCompletion();
 		delete AsyncScatterTask;
 		AsyncScatterTask = nullptr;

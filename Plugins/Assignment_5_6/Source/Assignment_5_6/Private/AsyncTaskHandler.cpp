@@ -9,6 +9,7 @@ FAsyncTaskHandler::FAsyncTaskHandler(AMeshGenerator* InMeshGenerator)
 	MeshGenerator = InMeshGenerator;
 }
 
+
 void FAsyncTaskHandler::DoWork()
 {
 	if (MeshGenerator)
@@ -17,25 +18,16 @@ void FAsyncTaskHandler::DoWork()
 		{
 			TArray<FMeshDataStruct> MeshDataStruct = DataAsset->MeshDataArr;
 
-
-			for (int jIndex = 0; jIndex < MeshDataStruct.Num(); jIndex++)
-			{
-				//int32 RandomMeshIndex = FMath::RandRange(0, StaticMeshes.Num() - 1);
-				UStaticMesh* CurrentMesh = MeshDataStruct[jIndex].MeshType;
-
-
 				for (int iIndex = 0; iIndex < MeshGenerator->NumberOfInstances; iIndex++)
 				{
-					float Rotation = FMath::RandRange(MeshDataStruct[jIndex].MinRotation, MeshDataStruct[jIndex].MaxRotation);
-					float Scale = FMath::RandRange(MeshDataStruct[jIndex].MinScale, MeshDataStruct[jIndex].MaxScale);
+
+					int RandomIndex = FMath::RandRange(0, MeshDataStruct.Num() - 1);
+					UStaticMesh* CurrentMesh = MeshDataStruct[RandomIndex].MeshType;
+					float Rotation = FMath::RandRange(MeshDataStruct[RandomIndex].MinRotation, MeshDataStruct[RandomIndex].MaxRotation);
+					float Scale = FMath::RandRange(MeshDataStruct[RandomIndex].MinScale, MeshDataStruct[RandomIndex].MaxScale);
 					FVector Position;
 					if (MeshGenerator->Type == "Box") {
 						//Box
-						/*GEngine->AddOnScreenDebugMessage(
-							-1,
-							2.0f,
-							FColor::Cyan,
-							FString::Printf(TEXT("Box Generate")));*/
 						FVector BoundingExtent = (MeshGenerator->Scale) * 50;
 						FVector Origin = MeshGenerator->Location + FVector(0, 0, BoundingExtent.Z);
 						FBox BoundingBox(Origin - BoundingExtent, Origin + BoundingExtent);
@@ -43,24 +35,12 @@ void FAsyncTaskHandler::DoWork()
 						Position = FMath::RandPointInBox(BoundingBox);
 					}
 					else {
-						/*GEngine->AddOnScreenDebugMessage(
-							-1,
-							2.0f,
-							FColor::Cyan,
-							FString::Printf(TEXT("Sphere Generate")));*/
 						//Sphere
 						float Radius = MeshGenerator->Scale.Z * 100;
 						FVector Origin = MeshGenerator->Location;
 						Position = FMath::VRand() * FMath::FRandRange(0.0f, Radius) + Origin;
 					}
 
-
-					/*GEngine->AddOnScreenDebugMessage(
-						-1,
-						2.0f,
-						FColor::Cyan,
-						FString::Printf(TEXT("Random Position: %s"), *Position.ToString()));*/
-					//InstanceTransforms.Add(FTransform(Position));
 
 					TArray<FTransform> InstanceTransforms;
 					FTransform transform;
@@ -74,7 +54,7 @@ void FAsyncTaskHandler::DoWork()
 
 					MeshGenerator->AddInstances(CurrentMesh, InstanceTransforms);
 					FPlatformProcess::Sleep(0.01f);
-					float Progress = (float)(((jIndex)*MeshGenerator->NumberOfInstances) + (iIndex + 1)) / (float)(MeshGenerator->NumberOfInstances * DataAsset->MeshDataArr.Num());
+					float Progress = (float)(iIndex + 1) / (float)(MeshGenerator->NumberOfInstances);
 
 					AsyncTask(ENamedThreads::GameThread, [this, Progress]()
 						{
@@ -85,7 +65,6 @@ void FAsyncTaskHandler::DoWork()
 				}
 
 
-			}
 
 		}
 
